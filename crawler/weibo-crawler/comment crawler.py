@@ -9,6 +9,7 @@ import random
 import numpy as np	
 import datetime
 import urllib3
+import json
 from multiprocessing.dummy import Pool as ThreadPool
 
 urllib3.disable_warnings()
@@ -154,7 +155,7 @@ def save_afile(alls,filename):
             for j in range(len(data)):
                 sheet1.write(i,j,data[j])
             i=i+1
-    f.save(r'今年/'+filename+'.xls')#保存路径
+    f.save(r'评论/'+filename+'.xls')#保存路径
 
 def extract(inpath,l):
     """取出一列数据"""
@@ -166,9 +167,53 @@ def extract(inpath,l):
         numbers.append(result)
     return numbers
 
-def run(ids):
+def save_progress(progress_file, crawled_ids):
+    """保存爬取进度"""
+    try:
+        with open(progress_file, 'w', encoding='utf-8') as f:
+            json.dump({'crawled_ids': crawled_ids, 'timestamp': datetime.datetime.now().isoformat()}, f, ensure_ascii=False)
+        print(f'进度已保存到 {progress_file}')
+    except Exception as e:
+        print(f'保存进度失败: {e}')
+
+def load_progress(progress_file):
+    """加载爬取进度"""
+    try:
+        if os.path.exists(progress_file):
+            with open(progress_file, 'r', encoding='utf-8') as f:
+                progress = json.load(f)
+                print(f'从 {progress_file} 加载进度，已爬取 {len(progress.get("crawled_ids", []))} 个微博')
+                return set(progress.get('crawled_ids', []))
+        else:
+            print('未找到进度文件，从头开始爬取')
+            return set()
+    except Exception as e:
+        print(f'加载进度失败: {e}，从头开始爬取')
+        return set()
+
+def check_file_exists(bid):
+    """检查微博评论文件是否已存在"""
+    file_path = os.path.join('评论', f'{bid}.xls')
+    return os.path.exists(file_path)
+
+def run(ids, crawled_ids=None, progress_file=None):
 	b=ids[0]#bid
 	u=str(ids[1]).replace('.0','')#uid
+	
+	# 检查是否已经爬取过
+	if crawled_ids is not None and b in crawled_ids:
+		print(f'微博 {b} 已爬取过，跳过')
+		return
+	
+	# 检查文件是否已存在
+	if check_file_exists(b):
+		print(f'微博 {b} 的文件已存在，跳过')
+		if crawled_ids is not None:
+			crawled_ids.add(b)
+			if progress_file:
+				save_progress(progress_file, list(crawled_ids))
+		return
+	
 	alls=[]#每次循环就清空一次
 	pa=[]#空列表判定
 	url='https://weibo.cn/comment/'+str(b)+'?uid='+str(u)#一个微博的评论首页
@@ -197,6 +242,12 @@ def run(ids):
 	print('共计'+str(page)+'页,共有'+str(count(alls))+'个数据')
 	save_afile(alls,b)
 
+	# 更新爬取进度
+	if crawled_ids is not None:
+		crawled_ids.add(b)
+		if progress_file:
+			save_progress(progress_file, list(crawled_ids))
+
 	print('微博号为'+str(b)+'的评论数据文件、保存完毕')
 
 if __name__ == '__main__':
@@ -205,6 +256,13 @@ if __name__ == '__main__':
 	script_dir = os.path.dirname(os.path.abspath(__file__))
 	# 构建正确的文件路径
 	fileName = os.path.join(script_dir, '..', '..', 'data', 'concat.xlsx')
+	
+	# 进度文件路径
+	progress_file = os.path.join(script_dir, 'crawler_progress.json')
+	
+	# 加载爬取进度
+	crawled_ids = load_progress(progress_file)
+	
 	#由于微博限制，只能爬取前五十页的
 	#里面的文件是爬取到的正文文件
 	bid=extract(fileName,1)#1是bid，2是u_id
@@ -213,9 +271,19 @@ if __name__ == '__main__':
 	ids=[]#将bid和uid匹配并以嵌套列表形式加入ids
 	for i,j in zip(bid,uid):
 		ids.append([i,j])
-	#多线程
+	
+	print(f'总共需要爬取 {len(ids)} 个微博，已爬取 {len(crawled_ids)} 个，剩余 {len(ids) - len(crawled_ids)} 个')
+	
+	# 多线程爬取，传入进度信息
 	pool = ThreadPool()
-	pool.map(run, ids)
+	
+	# 创建包装函数以传递额外参数
+	def run_with_progress(id_pair):
+		return run(id_pair, crawled_ids, progress_file)
+	
+	pool.map(run_with_progress, ids)
+	
+	print('所有微博评论爬取完成！')
 		
 		
 

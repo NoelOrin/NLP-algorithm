@@ -55,11 +55,12 @@ def require(url,headers):
 			#t.sleep(random.randint(1,2))
 			if code_1==200:
 				print('正常爬取中，状态码：'+str(code_1))#状态码
-				t.sleep(random.randint(1,2))
+				t.sleep(random.randint(1,5))
 				break
 			else:
 				print('请求异常，重试中，状态码为：'+str(code_1))#状态码
-				t.sleep(random.randint(30,45))
+				t.sleep(random.randint(60,180))
+				# cookie_2 = input("输入刷新Cookie")
 				continue
 		except:
 			t.sleep(random.randint(2,3))
