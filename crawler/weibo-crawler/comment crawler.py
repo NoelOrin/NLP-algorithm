@@ -12,7 +12,10 @@ import urllib3
 from multiprocessing.dummy import Pool as ThreadPool
 
 urllib3.disable_warnings()
-cookie=''#微博的cookie
+# cookie=''#微博的cookie
+cookie= 'SCF=ArMQAAJmyIG49ARh17nK3PgjUV15xWAqieE_jmgpqmK6SjDbtkttYBrQnW5kx98k1bwAVdioz9N0SALtm6BKEok.; SUB=_2A25ESvu9DeRhGeNJ6lcU8CnPzT2IHXVnJnF1rDV6PUJbktANLU3SkW1NS-UI9AI3ynxaPi-iBlrytMH02PNuQ_WT; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5.yyTVSc8UCXyVmjMciROg5NHD95QfS02fSK5Ne0qpWs4Dqcj.i--fiK.fi-zfi--fiK.fi-zfi--4iK.Ri-isi--ci-z0i-2f; SSOLoginState=1766755309; ALF=1769347309; MLOGIN=1; _T_WM=85045009941; M_WEIBOCN_PARAMS=luicode%3D20000174',
+
+# 'cookie': 'SCF=ArMQAAJmyIG49ARh17nK3PgjUV15xWAqieE_jmgpqmK6SjDbtkttYBrQnW5kx98k1bwAVdioz9N0SALtm6BKEok.; SUB=_2A25ESvu9DeRhGeNJ6lcU8CnPzT2IHXVnJnF1rDV6PUJbktANLU3SkW1NS-UI9AI3ynxaPi-iBlrytMH02PNuQ_WT; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5.yyTVSc8UCXyVmjMciROg5NHD95QfS02fSK5Ne0qpWs4Dqcj.i--fiK.fi-zfi--fiK.fi-zfi--4iK.Ri-isi--ci-z0i-2f; SSOLoginState=1766755309; ALF=1769347309; MLOGIN=1; _T_WM=85045009941; M_WEIBOCN_PARAMS=luicode%3D20000174',
 
 headers = {
 				  'Accept-Encoding': 'gzip, deflate, sdch',
