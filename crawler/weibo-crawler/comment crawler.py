@@ -1,5 +1,5 @@
 #coding='utf-8'
-import xlrd
+import openpyxl  # 替换xlrd以支持xlsx文件
 import re
 import requests
 import xlwt
@@ -13,8 +13,7 @@ from multiprocessing.dummy import Pool as ThreadPool
 
 urllib3.disable_warnings()
 # cookie=''#微博的cookie
-cookie= 'SCF=ArMQAAJmyIG49ARh17nK3PgjUV15xWAqieE_jmgpqmK6SjDbtkttYBrQnW5kx98k1bwAVdioz9N0SALtm6BKEok.; SUB=_2A25ESvu9DeRhGeNJ6lcU8CnPzT2IHXVnJnF1rDV6PUJbktANLU3SkW1NS-UI9AI3ynxaPi-iBlrytMH02PNuQ_WT; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5.yyTVSc8UCXyVmjMciROg5NHD95QfS02fSK5Ne0qpWs4Dqcj.i--fiK.fi-zfi--fiK.fi-zfi--4iK.Ri-isi--ci-z0i-2f; SSOLoginState=1766755309; ALF=1769347309; MLOGIN=1; _T_WM=85045009941; M_WEIBOCN_PARAMS=luicode%3D20000174',
-
+cookie= 'SCF=ArMQAAJmyIG49ARh17nK3PgjUV15xWAqieE_jmgpqmK6SjDbtkttYBrQnW5kx98k1R8HC7q0dJ9FfZb3KVH_1ys.; SINAGLOBAL=4456018209732.372.1766759621315; ULV=1766759621322:1:1:1:4456018209732.372.1766759621315:; WBPSESS=Dt2hbAUaXfkVprjyrAZT_MS6MXUtjhrWrCoRAV-x2glk7JcacDVexL9A5bLFu1UZI33sB7OGiMOlSfP8tlAFJsJCWvzeIoZzjkHs105tepKR_NjXlQNrhwyMxB0lSCojpGUPgyZBQEiOYGaK6UUWzvHYIxAeFdsHh1WcOSU4WqkSu55uBpL9_iYUj0wJ-8d1sIyH66GkfKeTXJI00MD7yw==; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh8HILbCB1TnVb5veiMiHfR5JpX5KzhUgL.Fo.7eo-Reh54e0e2dJLoIp7LxKML1KBLBKnLxKqL1hnLBoM4ehzf1h571Ke0; SUB=_2A25ESwjCDeRhGe9O6VcZ8C7FyD-IHXVnKQQKrDV8PUNbmtANLUHgkW9NdKWo_WYz_OvhpyYUPCTsqNWlPeiSm1hg; ALF=02_1769407890; XSRF-TOKEN=gtewfdUNL6qOfA71wqJy7rc0'
 # 'cookie': 'SCF=ArMQAAJmyIG49ARh17nK3PgjUV15xWAqieE_jmgpqmK6SjDbtkttYBrQnW5kx98k1bwAVdioz9N0SALtm6BKEok.; SUB=_2A25ESvu9DeRhGeNJ6lcU8CnPzT2IHXVnJnF1rDV6PUJbktANLU3SkW1NS-UI9AI3ynxaPi-iBlrytMH02PNuQ_WT; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5.yyTVSc8UCXyVmjMciROg5NHD95QfS02fSK5Ne0qpWs4Dqcj.i--fiK.fi-zfi--fiK.fi-zfi--4iK.Ri-isi--ci-z0i-2f; SSOLoginState=1766755309; ALF=1769347309; MLOGIN=1; _T_WM=85045009941; M_WEIBOCN_PARAMS=luicode%3D20000174',
 
 headers = {
@@ -35,7 +34,7 @@ def require(url):
 			#print(url)
 			code_1=response.status_code
 			#print(type(code_1))
-			#t.sleep(random.randint(1,2))
+			t.sleep(random.randint(1,2))
 			if code_1==200:
 				print('正常爬取中，状态码：'+str(code_1))#状态码
 				t.sleep(random.randint(1,2))
@@ -74,9 +73,9 @@ def count(alls):
 def body(h_1):#主体
 	html_2=re.findall('<div class="c" id="C.*?">(.*?)</div>',str(h_1),re.S)
 	html_2=str(html_2)
-	
+
 	user_ids=re.findall('<a href=".*?&amp;fuid=(.*?)&amp;.*?">举报</a> ',html_2,re.S)#从举报链接入手
-	
+
 	names_0=re.findall('<a href=.*?>(.*?)</a>',html_2,re.S)
 	names=[]#用户名
 	ma=[ '举报', '赞[]', '回复']
@@ -114,7 +113,7 @@ def body(h_1):#主体
 		contents_2.append(i)
 
 	for i in contents_2:
-		i=re.sub('\s','',i)#去除空白
+		i=re.sub(r'\s','',i)#去除空白
 		if len(i)==0:
 			pass
 		else:
@@ -129,7 +128,7 @@ def body(h_1):#主体
 			a=datetime.datetime.now().strftime('%m%d')
 			t_1=a[:2]+'月'+a[2:]+'日'#改为当天
 		times.append(t_1)
-	
+
 	all=[]
 	for i in range(len(user_ids)):
 		try:
@@ -159,14 +158,11 @@ def save_afile(alls,filename):
 
 def extract(inpath,l):
     """取出一列数据"""
-    data = xlrd.open_workbook(inpath, encoding_override='utf-8')
-    table = data.sheets()[0]#选定表
-    nrows = table.nrows#获取行号
-    ncols = table.ncols#获取列号
+    workbook = openpyxl.load_workbook(inpath)
+    sheet = workbook.active  # 获取活动工作表
     numbers=[]
-    for i in range(1, nrows):#第0行为表头
-        alldata = table.row_values(i)#循环输出excel表中每一行，即所有数据
-        result = alldata[l]#取出表中第一列数据
+    for row in range(2, sheet.max_row + 1):  # 从第2行开始（跳过表头）
+        result = sheet.cell(row=row, column=l+1).value  # openpyxl列索引从1开始
         numbers.append(result)
     return numbers
 
@@ -204,10 +200,15 @@ def run(ids):
 	print('微博号为'+str(b)+'的评论数据文件、保存完毕')
 
 if __name__ == '__main__':
+	import os
+	# 获取当前脚本所在目录的绝对路径
+	script_dir = os.path.dirname(os.path.abspath(__file__))
+	# 构建正确的文件路径
+	fileName = os.path.join(script_dir, '..', '..', 'data', 'concat.xlsx')
 	#由于微博限制，只能爬取前五十页的
 	#里面的文件是爬取到的正文文件
-	bid=extract('正文_2.xlsx',1)#1是bid，2是u_id
-	uid=extract('正文_2.xlsx',2)
+	bid=extract(fileName,1)#1是bid，2是u_id
+	uid=extract(fileName,2)
 
 	ids=[]#将bid和uid匹配并以嵌套列表形式加入ids
 	for i,j in zip(bid,uid):

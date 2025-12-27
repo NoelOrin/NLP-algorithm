@@ -10,11 +10,17 @@ import numpy as np
 import datetime
 import urllib3
 from multiprocessing.dummy import Pool as ThreadPool
+try:
+    import pandas as pd
+except ImportError:
+    pd = None
 
 urllib3.disable_warnings()#消除警告信息
 #随机cookie
-cookie_1=''
-cookie_2=''
+# cookie_1=''
+cookie_1= 'SCF=ArMQAAJmyIG49ARh17nK3PgjUV15xWAqieE_jmgpqmK6SjDbtkttYBrQnW5kx98k1R8HC7q0dJ9FfZb3KVH_1ys.; SINAGLOBAL=4456018209732.372.1766759621315; ULV=1766759621322:1:1:1:4456018209732.372.1766759621315:; WBPSESS=Dt2hbAUaXfkVprjyrAZT_MS6MXUtjhrWrCoRAV-x2glk7JcacDVexL9A5bLFu1UZI33sB7OGiMOlSfP8tlAFJsJCWvzeIoZzjkHs105tepKR_NjXlQNrhwyMxB0lSCojpGUPgyZBQEiOYGaK6UUWzvHYIxAeFdsHh1WcOSU4WqkSu55uBpL9_iYUj0wJ-8d1sIyH66GkfKeTXJI00MD7yw==; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh8HILbCB1TnVb5veiMiHfR5JpX5KzhUgL.Fo.7eo-Reh54e0e2dJLoIp7LxKML1KBLBKnLxKqL1hnLBoM4ehzf1h571Ke0; SUB=_2A25ESwjCDeRhGe9O6VcZ8C7FyD-IHXVnKQQKrDV8PUNbmtANLUHgkW9NdKWo_WYz_OvhpyYUPCTsqNWlPeiSm1hg; ALF=02_1769407890; XSRF-TOKEN=gtewfdUNL6qOfA71wqJy7rc0'
+
+cookie_2='WBPSESS=TTXVaDPdybGHkIqBlKSRWKUb5Insc62gz-sMcbc57onha8Gir6SY1LNKIbtAtRzroqRWhQg29ofr2n5uPf6395OXjf3pXSyhvevzALPJh88kgtsnUh6Tz_nyHVXfzEIaMJ92NQXAKe7qlbnKkKKJgg==; XSRF-TOKEN=U13gzsP4TcAq_RrR5OVD0a6r; PC_TOKEN=582178c8fb; ALF=02_1769367712; SCF=AtjsyiOiEn_7NPRHVfYHx3MeS3hD1kKUuXaLMehErQejunm7hZvuodbS46fdTXdQMuzGWkw07lFchmYiGF6fJfY.; SUB=_2A25ESqvwDeRhGeNJ6lcU8CnPzT2IHXVnKaE4rDV8PUNbmtANLUvkkW9NS-UI9HJ2mDtDclEPYtUcxD0BeyN_zWEn; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5.yyTVSc8UCXyVmjMciROg5JpX5KzhUgL.Fo-NeK-fehM0So22dJLoIEBLxK-L1K-LBo-LxK-L1K-LBo-LxK.L1KnLB.qLxKqLBoeLBK-t'
 
 headers_1 = {
 				  'Accept-Encoding': 'gzip, deflate, br',
@@ -53,7 +59,7 @@ def require(url,headers):
 				break
 			else:
 				print('请求异常，重试中，状态码为：'+str(code_1))#状态码
-				t.sleep(random.randint(10,15))
+				t.sleep(random.randint(30,45))
 				continue
 		except:
 			t.sleep(random.randint(2,3))
@@ -125,7 +131,7 @@ def body(h_1):#主体
 		contents_2.append(i)
 
 	for i in contents_2:
-		i=re.sub('\s','',i)#去除空白
+		i=re.sub(r'\s','',i)#去除空白
 		if len(i)==0:
 			pass
 		else:
@@ -166,19 +172,26 @@ def save_afile(alls,filename):
             for j in range(len(data)):
                 sheet1.write(i,j,data[j])
             i=i+1
-    f.save(r'评论/'+filename+'.xls')
+    import os
+    output_path = os.path.join('评论', filename + '.xls')
+    f.save(output_path)
 
 def extract(inpath,l):
     """取出一列数据"""
-    data = xlrd.open_workbook(inpath, encoding_override='utf-8')
-    table = data.sheets()[0]#选定表
-    nrows = table.nrows#获取行号
-    ncols = table.ncols#获取列号
-    numbers=[]
-    for i in range(1, nrows):#第0行为表头
-        alldata = table.row_values(i)#循环输出excel表中每一行，即所有数据
-        result = alldata[l]#取出表中第一列数据
-        numbers.append(result)
+    if pd is not None and inpath.endswith('.xlsx'):
+        # 使用pandas处理xlsx文件
+        df = pd.read_excel(inpath)
+        numbers = df.iloc[1:, l].tolist()  # 跳过表头
+    else:
+        # 使用xlrd处理xls文件
+        data = xlrd.open_workbook(inpath, encoding_override='utf-8')
+        table = data.sheets()[0]#选定表
+        nrows = table.nrows#获取行号
+        numbers=[]
+        for i in range(1, nrows):#第0行为表头
+            alldata = table.row_values(i)#循环输出excel表中每一行，即所有数据
+            result = alldata[l]#取出表中第一列数据
+            numbers.append(result)
     return numbers
 
 def run(ids):
@@ -220,9 +233,17 @@ def run(ids):
 
 if __name__ == '__main__':
 	#由于微博限制，只能爬取前五十页的
+
+	script_dir = os.path.dirname(os.path.abspath(__file__))
+	# 构建正确的文件路径
+	fileName = os.path.join(script_dir, '..', '..', 'data', 'concat.xlsx')
+	#由于微博限制，只能爬取前五十页的
 	#里面的文件是爬取到的正文文件
-	bid=extract('..//微博正文爬取//正文.xlsx',1)#1是bid，2是u_id
-	uid=extract('..//微博正文爬取//正文.xlsx',2)
+	bid=extract(fileName,1)#1是bid，2是u_id
+	uid=extract(fileName,2)
+	#里面的文件是爬取到的正文文件
+	# bid=extract('..//微博正文爬取//正文.xlsx',1)#1是bid，2是u_id
+	# uid=extract('..//微博正文爬取//正文.xlsx',2)
 
 	ids=[]#将bid和uid匹配并以嵌套列表形式加入ids
 	for i,j in zip(bid,uid):
