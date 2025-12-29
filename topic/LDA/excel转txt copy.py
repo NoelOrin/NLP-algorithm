@@ -1,5 +1,5 @@
 #coding='utf-8'
-import xlrd
+import pandas as pd
 import re
 import os
 
@@ -11,16 +11,16 @@ def extract(inpath):
         return []
     
     try:
-        data = xlrd.open_workbook(inpath, encoding_override='utf-8')
-        table = data.sheets()[0]#选定表
-        nrows = table.nrows#获取行号
-        ncols = table.ncols#获取列号
-        numbers=[]
-        for i in range(1, nrows):#第0行为表头
-            alldata = table.row_values(i)#循环输出excel表中每一行，即所有数据
-            result_0 = alldata[4]#取出正文
-            numbers.append(result_0)
-            #numbers.append([result_0,result_3,result_4,result_5])
+        # 使用pandas读取Excel文件
+        df = pd.read_excel(inpath)
+        # 检查是否有足够的列
+        if len(df.columns) < 5:
+            print(f"错误: Excel文件需要至少5列，当前只有{len(df.columns)}列")
+            return []
+        
+        # 提取第5列（索引4）的数据
+        numbers = df.iloc[:, 4].dropna().tolist()
+        print(f"成功读取 {len(numbers)} 条数据")
         return numbers
     except Exception as e:
         print(f"读取Excel文件失败: {e}")
@@ -51,7 +51,7 @@ def clean(line):
     pattern_3=re.compile(r'@([\u4e00-\u9fa5\w\-]+)')#匹配@
     #肺炎@环球时报
     pattern_4=re.compile(u'[\U00010000-\U0010ffff\uD800-\uDBFF\uDC00-\uDFFF]')#匹配表情
-    pattern_5=re.compile('(.*?)')#匹配一部分颜文字
+    # pattern_5=re.compile('(.*?)')#这个正则表达式会删除所有内容，注释掉
     pattern_7=re.compile('L.*?的微博视频')
     pattern_8=re.compile('（.*?）')
     #pattern_9=re.compile(u"\|[\u4e00-\u9fa5]*\|")#匹配中文
@@ -68,7 +68,7 @@ def clean(line):
     line=re.sub(pattern_2, '', line,0) #去除@
     line=re.sub(pattern_3, '', line,0) #去除@
     line=re.sub(pattern_4, '', line,0) #去除表情
-    line=re.sub(pattern_5, '', line,0) #去除一部分颜文字
+    # line=re.sub(pattern_5, '', line,0) #这个正则表达式会删除所有内容，注释掉
     line=re.sub(pattern_7, '', line,0) 
     line=re.sub(pattern_8, '', line,0) 
     line=re.sub(r'\[\S+\]', '', line,0) #去除表情符号
@@ -83,7 +83,9 @@ if __name__ == "__main__":
     
     # 构建正确的文件路径
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    data_dir = os.path.join(script_dir, '..', '..', '..', 'data')
+    # 直接使用项目根目录下的data文件夹
+    project_root = os.path.join(script_dir, '..', '..')
+    data_dir = os.path.join(project_root, 'data')
     excel_file = os.path.join(data_dir, 'concat.xlsx')
     
     print(f"正在查找Excel文件: {excel_file}")
