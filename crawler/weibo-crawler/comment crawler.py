@@ -10,22 +10,55 @@ import numpy as np
 import datetime
 import urllib3
 import json
+import sys
+import argparse
 from multiprocessing.dummy import Pool as ThreadPool
 
 urllib3.disable_warnings()
-# cookie=''#微博的cookie
-cookie= 'SCF=ArMQAAJmyIG49ARh17nK3PgjUV15xWAqieE_jmgpqmK6SjDbtkttYBrQnW5kx98k1R8HC7q0dJ9FfZb3KVH_1ys.; SINAGLOBAL=4456018209732.372.1766759621315; ULV=1766759621322:1:1:1:4456018209732.372.1766759621315:; WBPSESS=Dt2hbAUaXfkVprjyrAZT_MS6MXUtjhrWrCoRAV-x2glk7JcacDVexL9A5bLFu1UZI33sB7OGiMOlSfP8tlAFJsJCWvzeIoZzjkHs105tepKR_NjXlQNrhwyMxB0lSCojpGUPgyZBQEiOYGaK6UUWzvHYIxAeFdsHh1WcOSU4WqkSu55uBpL9_iYUj0wJ-8d1sIyH66GkfKeTXJI00MD7yw==; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh8HILbCB1TnVb5veiMiHfR5JpX5KzhUgL.Fo.7eo-Reh54e0e2dJLoIp7LxKML1KBLBKnLxKqL1hnLBoM4ehzf1h571Ke0; SUB=_2A25ESwjCDeRhGe9O6VcZ8C7FyD-IHXVnKQQKrDV8PUNbmtANLUHgkW9NdKWo_WYz_OvhpyYUPCTsqNWlPeiSm1hg; ALF=02_1769407890; XSRF-TOKEN=gtewfdUNL6qOfA71wqJy7rc0'
-# 'cookie': 'SCF=ArMQAAJmyIG49ARh17nK3PgjUV15xWAqieE_jmgpqmK6SjDbtkttYBrQnW5kx98k1bwAVdioz9N0SALtm6BKEok.; SUB=_2A25ESvu9DeRhGeNJ6lcU8CnPzT2IHXVnJnF1rDV6PUJbktANLU3SkW1NS-UI9AI3ynxaPi-iBlrytMH02PNuQ_WT; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9W5.yyTVSc8UCXyVmjMciROg5NHD95QfS02fSK5Ne0qpWs4Dqcj.i--fiK.fi-zfi--fiK.fi-zfi--4iK.Ri-isi--ci-z0i-2f; SSOLoginState=1766755309; ALF=1769347309; MLOGIN=1; _T_WM=85045009941; M_WEIBOCN_PARAMS=luicode%3D20000174',
 
-headers = {
-				  'Accept-Encoding': 'gzip, deflate, sdch',
-				 'Accept-Language': 'en-US,en;q=0.8',
-				 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
-				'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-				 'Referer': 'https://www.baidu.com/',
-			    'Connection': 'keep-alive',
-				'Cookie': cookie,
-				}
+# 全局变量
+cookie = ''
+headers = {}
+
+def init_crawler(config_file=None):
+    """初始化爬虫配置"""
+    global cookie, headers
+    
+    # 如果提供了配置文件，从文件读取cookie
+    if config_file and os.path.exists(config_file):
+        try:
+            with open(config_file, 'r', encoding='utf-8') as f:
+                config = json.load(f)
+                cookie = config.get('cookie', '')
+                print(f"从配置文件加载cookie，长度: {len(cookie)}")
+        except Exception as e:
+            print(f"读取配置文件失败: {e}")
+            cookie = ''
+    
+    # 如果没有cookie，使用默认值
+    if not cookie:
+        cookie = 'SCF=ArMQAAJmyIG49ARh17nK3PgjUV15xWAqieE_jmgpqmK6SjDbtkttYBrQnW5kx98k1R8HC7q0dJ9FfZb3KVH_1ys.; SINAGLOBAL=4456018209732.372.1766759621315; ULV=1766759621322:1:1:1:4456018209732.372.1766759621315:; WBPSESS=Dt2hbAUaXfkVprjyrAZT_MS6MXUtjhrWrCoRAV-x2glk7JcacDVexL9A5bLFu1UZI33sB7OGiMOlSfP8tlAFJsJCWvzeIoZzjkHs105tepKR_NjXlQNrhwyMxB0lSCojpGUPgyZBQEiOYGaK6UUWzvHYIxAeFdsHh1WcOSU4WqkSu55uBpL9_iYUj0wJ-8d1sIyH66GkfKeTXJI00MD7yw==; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh8HILbCB1TnVb5veiMiHfR5JpX5KzhUgL.Fo.7eo-Reh54e0e2dJLoIp7LxKML1KBLBKnLxKqL1hnLBoM4ehzf1h571Ke0; SUB=_2A25ESwjCDeRhGe9O6VcZ8C7FyD-IHXVnKQQKrDV8PUNbmtANLUHgkW9NdKWo_WYz_OvhpyYUPCTsqNWlPeiSm1hg; ALF=02_1769407890; XSRF-TOKEN=gtewfdUNL6qOfA71wqJy7rc0'
+        print("使用默认cookie")
+    
+    # 设置headers
+    headers = {
+        'Accept-Encoding': 'gzip, deflate, sdch',
+        'Accept-Language': 'en-US,en;q=0.8',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/39.0.2171.95 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Referer': 'https://www.baidu.com/',
+        'Connection': 'keep-alive',
+        'Cookie': cookie,
+    }
+    
+    print("爬虫初始化完成")
+
+def parse_arguments():
+    """解析命令行参数"""
+    parser = argparse.ArgumentParser(description='微博评论爬虫')
+    parser.add_argument('--config', type=str, help='配置文件路径')
+    parser.add_argument('--cookie', type=str, help='直接传入cookie')
+    return parser.parse_args()
 
 def require(url):
 	"""获取网页源码"""
@@ -252,6 +285,21 @@ def run(ids, crawled_ids=None, progress_file=None):
 
 if __name__ == '__main__':
 	import os
+	
+	# 解析命令行参数
+	args = parse_arguments()
+	
+	# 初始化爬虫配置
+	if args.config:
+		init_crawler(args.config)
+	elif args.cookie:
+		# 直接传入cookie
+		cookie = args.cookie
+		headers['Cookie'] = cookie
+		print(f"使用命令行传入的cookie，长度: {len(cookie)}")
+	else:
+		init_crawler()
+	
 	# 获取当前脚本所在目录的绝对路径
 	script_dir = os.path.dirname(os.path.abspath(__file__))
 	# 构建正确的文件路径
