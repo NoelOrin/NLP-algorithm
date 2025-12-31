@@ -952,7 +952,7 @@ dependencies = [
 requires-dist = [
     { name = "emoji", specifier = ">=2.0.0" },
     { name = "fastapi", specifier = ">=0.115.0" },
-    { name = "gensim" },
+    { name = "gensim", specifier = ">=4.4.0" },
     { name = "jieba", specifier = ">=0.42.0" },
     { name = "matplotlib" },
     { name = "openpyxl", specifier = ">=3.1.5" },
