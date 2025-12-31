@@ -1,0 +1,7 @@
+fastapi==0.115.12
+jieba==0.42.1
+pydantic==2.11.5
+Requests==2.32.3
+torch==2.4.0.dev20240524+cu124
+tqdm==4.66.4
+transformers==4.37.2

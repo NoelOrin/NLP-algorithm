@@ -12,3 +12,4 @@ wheels/
 .vscode
 /crawler/weibo-crawler/评论/
 /crawler/weibo-crawler/crawler_progress.json
+/bert-multiple-emotion-classify/pretrained_model/bert-base-chinese/
