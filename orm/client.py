@@ -22,11 +22,11 @@ def ORM() -> ContextManager[Session]:
     try:
         yield db  # 提供会话给外部使用
         db.commit()  # 无异常时提交事务
-        print("事务提交成功")
+        # print("事务提交成功")
     except Exception as e:
         db.rollback()  # 异常时回滚事务
         print(f"事务回滚：{str(e)}")
         raise  # 抛出异常供外部处理
     finally:
         db.close()  # 无论成败都关闭会话
-        print("会话已关闭")
+        # print("会话已关闭")

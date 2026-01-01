@@ -10,6 +10,6 @@ wheels/
 .venv
 .idea
 .vscode
-/crawler/weibo-crawler/评论/
-/crawler/weibo-crawler/crawler_progress.json
+/crawler/weibo_comment_crawler/评论/
+/crawler/weibo_comment_crawler/crawler_progress.json
 /bert-multiple-emotion-classify/pretrained_model/bert-base-chinese/

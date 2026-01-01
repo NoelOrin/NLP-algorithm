@@ -5,19 +5,27 @@ import json
 import os
 import random
 import re
+import sys
 import time as t
 from multiprocessing.dummy import Pool as ThreadPool
-from typing import TypedDict
-
 import openpyxl  # 替换xlrd以支持xlsx文件
 import requests
 import urllib3
 import xlwt
 
+# 添加项目根目录到Python路径
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+sys.path.insert(0, project_root)
+
+from models.weibo_comment import WeiboComment
+from models.weibo_blog import WeiboBlog
+from orm.client import ORM
+
 urllib3.disable_warnings()
 
 # 全局变量
 headers = {}
+
 
 def init_crawler(cookie: str):
     """初始化爬虫配置"""
@@ -117,6 +125,7 @@ def body(h_1):  # 主体
     pattern_0 = re.compile(r'回复<a href=.*?</a>:')  # 匹配回复前缀
     pattern_0_1 = re.compile(r'<a href=.*?</a>')  # 匹配回复内容后面的表情图片地址
     pattern_0_2 = re.compile(r'<img alt=.*?/>')  # 匹配回复内容的图片地址
+    pattern_0_3 = re.compile(r'<span class="url-icon">')  # 匹配url-icon标签
     contents = []  # 评论内容
     contents_2 = []  # 评论内容初步
     contents_0 = re.findall('<span class="ctt">(.*?)</span>', html_2, re.S)  # 一级
@@ -126,6 +135,7 @@ def body(h_1):  # 主体
         i = re.sub(pattern_0, '', i)
         i = re.sub(pattern_0_1, '', i)
         i = re.sub(pattern_0_2, '', i)
+        i = re.sub(pattern_0_3, '', i)  # 去除url-icon标签
         i = i.replace(':', '')
         i = i.strip()
         contents_2.append(i)
@@ -134,6 +144,7 @@ def body(h_1):  # 主体
         i = re.sub(pattern_0, '', i)
         i = re.sub(pattern_0_1, '', i)
         i = re.sub(pattern_0_2, '', i)
+        i = re.sub(pattern_0_3, '', i)  # 去除url-icon标签
         i = i.replace('</span>', '')
         i = i.replace('&nbsp;', '')
         i = i.replace(':', '')
@@ -148,13 +159,22 @@ def body(h_1):  # 主体
             contents.append(i)
     times_0 = re.findall('<span class="ct">(.*?)</span>', html_2, re.S)
     times = []  # 时间
-    pattern_1 = re.compile(r'\d{2}月\d{2}日')  # 匹配日期
+    pattern_1 = re.compile(r'(\d{2})月(\d{2})日')  # 匹配日期并捕获月份和日期
+    current_year = datetime.datetime.now().year
+    
     for i in times_0:
         try:
-            t_1 = re.match(pattern_1, i).group()
+            match = re.match(pattern_1, i)
+            if match:
+                month, day = match.groups()
+                # 转换为标准日期格式 YYYY-MM-DD
+                t_1 = f'{current_year}-{month}-{day}'
+            else:
+                # 如果无法匹配，使用当前日期
+                t_1 = datetime.datetime.now().strftime('%Y-%m-%d')
         except:
-            a = datetime.datetime.now().strftime('%m%d')
-            t_1 = a[:2] + '月' + a[2:] + '日'  # 改为当天
+            # 如果出现异常，使用当前日期
+            t_1 = datetime.datetime.now().strftime('%Y-%m-%d')
         times.append(t_1)
 
     all = []
@@ -168,36 +188,57 @@ def body(h_1):  # 主体
         all.append(al)
     return all
 
-
-def save_afile(alls, filename):
-    """将数据保存在一个excel"""
-    f = xlwt.Workbook()
-    sheet1 = f.add_sheet(u'sheet1', cell_overwrite_ok=True)
-    sheet1.write(0, 0, '用户ID')
-    sheet1.write(0, 1, '用户名')
-    sheet1.write(0, 2, '评论内容')
-    sheet1.write(0, 3, '时间')
-    i = 1
-    for all in alls:
-        for data in all:
-            for j in range(len(data)):
-                sheet1.write(i, j, data[j])
-            i = i + 1
-    f.save(r'评论/' + filename + '.xls')  # 保存路径
-
-def insert_db(alls):
+def insert_db(all, bid):
     """将数据插入数据库"""
-    # for all in alls:
-    #     for data in all:
-    #         user_id, name, content, time = data
-    #         sql = "INSERT INTO comments (user_id, name, content, time) VALUES (%s, %s, %s, %s)"
-    #         val = (user_id, name, content, time)
-    #         mycursor.execute(sql, val)
-    #         mydb.commit()
-    #         print("新记录插入成功")
+    try:
+        with ORM() as db:
+            # 先检查是否已经存在相同bid的评论，避免重复插入
+            existing_comments = db.query(WeiboComment.id).filter(WeiboComment.bid == bid).all()
+            existing_ids = {comment[0] for comment in existing_comments}
+            
+            inserted_count = 0
+            for items in all:
+                for data in items:
+                    user_id, name, content, time = data
+                    
+                    # 检查是否已经存在相同的评论
+                    if user_id in existing_ids:
+                        continue
+                        
+                    comment = WeiboComment(
+                        id=user_id,
+                        bid=bid,
+                        screen_name=name,
+                        text=content,
+                        created_at=time
+                    )
+                    db.add(comment)
+                    inserted_count += 1
+            
+            if inserted_count > 0:
+                db.commit()
+                print(f'成功插入 {inserted_count} 条评论数据')
+            else:
+                print('没有新评论数据需要插入')
+                
+    except Exception as e:
+        print(f'插入数据库时发生错误: {e}')
+        # 回滚事务
+        try:
+            db.rollback()
+        except:
+            pass
 
-def extract(inpath, l):
+
+def extract(inpath, l, bid=None):
     """取出一列数据"""
+    # 如果提供了bid参数，从数据库查询数据
+    if bid is not None:
+        with ORM() as db:
+            data = db.query(WeiboComment.id).filter(WeiboComment.bid == bid).all()
+            return [item[0] for item in data]
+    
+    # 否则从Excel文件读取数据
     workbook = openpyxl.load_workbook(inpath)
     sheet = workbook.active  # 获取活动工作表
     numbers = []
@@ -205,6 +246,7 @@ def extract(inpath, l):
         result = sheet.cell(row=row, column=l + 1).value  # openpyxl列索引从1开始
         numbers.append(result)
     return numbers
+
 
 
 def save_progress(progress_file, crawled_ids):
@@ -242,8 +284,8 @@ def check_file_exists(bid):
 
 def run(ids, crawled_ids=None, progress_file=None):
     b = ids[0]  # bid
-    u = str(ids[1]).replace('.0', '')  # uid
-
+    # 注意：这里缺少uid参数，但代码中使用了u变量，需要添加uid参数
+    
     # 检查是否已经爬取过
     if crawled_ids is not None and b in crawled_ids:
         print(f'微博 {b} 已爬取过，跳过')
@@ -260,6 +302,15 @@ def run(ids, crawled_ids=None, progress_file=None):
 
     alls = []  # 每次循环就清空一次
     pa = []  # 空列表判定
+    # 这里需要从数据库获取微博对应的uid
+    with ORM() as db:
+        blog = db.query(WeiboBlog).filter(WeiboBlog.bid == b).first()
+        if blog:
+            u = blog.user_id
+        else:
+            print(f'微博 {b} 在数据库中不存在，跳过')
+            return
+    
     url = 'https://weibo.cn/comment/' + str(b) + '?uid=' + str(u)  # 一个微博的评论首页
     html, page = html_1(url)
     # print(url)
@@ -284,10 +335,14 @@ def run(ids, crawled_ids=None, progress_file=None):
                 alls.append(body(htmls))
             t.sleep(1)
     print('共计' + str(page) + '页,共有' + str(count(alls)) + '个数据')
-    save_afile(alls, b)
+    # save_afile(alls, b)
+    insert_db(alls, b)
 
     # 更新爬取进度
     if crawled_ids is not None:
+        # 确保 crawled_ids 是集合类型
+        if isinstance(crawled_ids, list):
+            crawled_ids = set(crawled_ids)
         crawled_ids.add(b)
         if progress_file:
             save_progress(progress_file, list(crawled_ids))
@@ -297,64 +352,32 @@ def run(ids, crawled_ids=None, progress_file=None):
 
 def run_comment_crawler(cookie: str):
     init_crawler(cookie)
-    pool = ThreadPool()
 
+    # 需要爬取的微博ID
+    with ORM() as db:
+        bids = [b.bid for b in  db.query(WeiboBlog.bid).all()]
+    print(len(bids))
 
-    # 创建包装函数以传递额外参数
-    def run_with_progress(id_pair):
-        return run(id_pair, crawled_ids, progress_file)
+    # 从数据库查询已经爬取过的微博ID
+    with ORM() as db:
+        # 查询数据库中已存在的微博ID
+        existing_bids = [result[0] for result in db.query(WeiboComment.bid).distinct().all()]
+        print(f'数据库中已存在 {len(existing_bids)} 个微博的评论区')
 
-
-    pool.map(run_with_progress, ids)
-
-
-if __name__ == '__main__':
-
-    # 解析命令行参数
-    args = parse_arguments()
-
-    # 初始化爬虫配置
-    if args.config:
-        init_crawler(args.config)
-    elif args.cookie:
-        # 直接传入cookie
-        cookie = args.cookie
-        headers['Cookie'] = cookie
-        print(f"使用命令行传入的cookie，长度: {len(cookie)}")
-    else:
-        init_crawler()
-
-    # 获取当前脚本所在目录的绝对路径
-    script_dir = os.path.dirname(os.path.abspath(__file__))
-    # 构建正确的文件路径
-    fileName = os.path.join(script_dir, '..', '..', 'data', 'concat.xlsx')
-
-    # 进度文件路径
-    progress_file = os.path.join(script_dir, 'crawler_progress.json')
-
-    # 加载爬取进度
-    crawled_ids = load_progress(progress_file)
-
-    # 由于微博限制，只能爬取前五十页的
-    # 里面的文件是爬取到的正文文件
-    bid = extract(fileName, 1)  # 1是bid，2是u_id
-    uid = extract(fileName, 2)
-
+    # 过滤掉已经爬取过的微博
     ids = []  # 将bid和uid匹配并以嵌套列表形式加入ids
-    for i, j in zip(bid, uid):
-        ids.append([i, j])
+    for i in bids:
+        # 如果微博ID不在数据库中，且不在进度文件中，则加入爬取列表
+        if i not in existing_bids:
+            ids.append([i])
 
-    print(f'总共需要爬取 {len(ids)} 个微博，已爬取 {len(crawled_ids)} 个，剩余 {len(ids) - len(crawled_ids)} 个')
-
-    # 多线程爬取，传入进度信息
+    print(f'总共需要爬取 {len(bids)} 个微博，已爬取 {len(existing_bids)} 个，剩余 {len(ids)} 个')
     pool = ThreadPool()
-
 
     # 创建包装函数以传递额外参数
     def run_with_progress(id_pair):
-        return run(id_pair, crawled_ids, progress_file)
-
+        return run(id_pair, existing_bids, None)
 
     pool.map(run_with_progress, ids)
-
     print('所有微博评论爬取完成！')
+
