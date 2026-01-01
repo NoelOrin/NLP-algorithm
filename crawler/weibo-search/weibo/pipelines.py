@@ -254,7 +254,7 @@ class PostgresqlPipeline(object):
         sql = """
         CREATE TABLE IF NOT EXISTS weibo_blogs (
             id VARCHAR(20) PRIMARY KEY,
-            bid VARCHAR(12) NOT NULL,
+            bid VARCHAR(12) NOT NULL UNIQUE,
             user_id VARCHAR(20),
             screen_name VARCHAR(30),
             text TEXT,

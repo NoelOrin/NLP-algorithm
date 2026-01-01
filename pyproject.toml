@@ -33,6 +33,7 @@ dependencies = [
     "plotly>=6.5.0",
     "seaborn>=0.13.2",
     "psycopg2>=2.9.11",
+    "sqlalchemy>=2.0.45",
 ]
 
 [tool.uv.sources]

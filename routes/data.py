@@ -30,6 +30,9 @@ async def get_data_info():
 
 @router.get("/types")
 async def get_data_types():
+
+
+
     """获取数据类型"""
     return {
         "message": "Data types",
