@@ -1,7 +1,17 @@
+from dataclasses import dataclass
+from typing import TypedDict
+
 from data_models.weibo_blog import WeiboBlog
 from data_models.weibo_comment import WeiboComment
 from orm.client import ORM
 from sqlalchemy.sql import func
+
+
+class WeiboBlogCommentType(TypedDict):
+    id: str
+    bid: str
+    content: str
+    comments: list[WeiboComment]
 
 
 def weibo_blog_comments(id: str):
@@ -12,6 +22,7 @@ def weibo_blog_comments(id: str):
             "data": item
         }
 
+
 def weibo_blogs_comments(id: list[str]):
     """根据ID获取微博博客评论"""
     with ORM() as db:
@@ -21,7 +32,7 @@ def weibo_blogs_comments(id: list[str]):
         }
 
 
-def weibo_blog_random(limit: int):
+def weibo_blog_random(limit: int) -> list[WeiboBlogCommentType]:
     """随机获取微博+评论"""
     with ORM() as db:
         # 使用JOIN查询同时获取微博和评论，减少数据库查询次数
@@ -50,9 +61,8 @@ def weibo_blog_random(limit: int):
 
         result = list(result_map.values())
 
-        return {
-            "weibo": result,
-        }
+        return result
+
 
 if __name__ == '__main__':
     print(weibo_blog_random(10))
