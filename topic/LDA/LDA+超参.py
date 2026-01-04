@@ -22,7 +22,7 @@ def compute_coherence_values(dictionary, corpus, texts, start, limit, step):
 
     Returns:
     -------
-    model_list : List of LDA topic models
+    model_list : List of LDA topic data_models
     coherence_values : Coherence values corresponding to the LDA model with respective number of topics
     """
     coherence_values = []

@@ -1,6 +1,6 @@
 from typing import Any, Dict, Optional
 
-from models.weibo_comment import WeiboComment
+from data_models.weibo_comment import WeiboComment
 from orm.client import ORM
 
 

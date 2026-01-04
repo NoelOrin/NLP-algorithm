@@ -16,9 +16,12 @@ def infile(fliepath):
         line = line.strip().split(' ')
         train.append(line)
     return train
-sentences=infile('训练.txt')#文本
 
-model=models.Word2Vec(sentences,min_count=0)
-print(model)
-model.save('w2v.model')
+
+if __name__ == '__main__':
+    sentences = infile('训练.txt')  # 文本
+
+    model = models.Word2Vec(sentences, min_count=0)
+    print(model)
+    model.save('w2v.model')
 

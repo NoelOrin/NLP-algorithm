@@ -1,8 +1,9 @@
 from typing import Optional, Dict, Any
-
-from models.weibo_blog import WeiboBlog
+from data_models.weibo_blog import WeiboBlog
+from data_models.weibo_comment import WeiboComment
 from orm.client import ORM
 from utils.paginator import Paginator
+from sqlalchemy.sql import func
 
 
 def weibo_blog(id: str):
@@ -46,3 +47,7 @@ def weibo_blogs(
         order_by=order_by,
         order_desc=order_desc
     )
+
+
+if __name__ == '__main__':
+    print()
