@@ -1,5 +1,5 @@
 import fastapi
-from server.routes import index_router, data_router
+from routes import index_router, data_router
 
 app = fastapi.FastAPI(
     title="NLP Algorithm API",
@@ -10,3 +10,8 @@ app = fastapi.FastAPI(
 # 包含路由
 app.include_router(index_router)
 app.include_router(data_router)
+
+if __name__ == '__main__':
+    import uvicorn
+    app.debug = True
+    uvicorn.run(app, host="0.0.0.0", port=3000,)
