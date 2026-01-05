@@ -1,3 +1,4 @@
+from utils.paginator import Paginator
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Query
 
@@ -71,46 +72,12 @@ class WeiboBlogDAO:
         Returns:
             分页结果字典
         """
-        with ORM() as db:
-            query: Query = db.query(WeiboBlog)
+        data = Paginator(model_class=WeiboBlog,
+                              page=page,
+                                per_page=per_page,
+                                filters=filters,order_by=order_by,order_desc=order_desc)
             
-            # 应用过滤条件
-            if filters:
-                for field, value in filters.items():
-                    if hasattr(WeiboBlog, field):
-                        query = query.filter(getattr(WeiboBlog, field) == value)
-            
-            # 计算总数
-            total_count = query.count()
-            total_pages = (total_count + per_page - 1) // per_page
-            
-            # 应用排序
-            if order_by and hasattr(WeiboBlog, order_by):
-                order_field = getattr(WeiboBlog, order_by)
-                if order_desc:
-                    query = query.order_by(order_field.desc())
-                else:
-                    query = query.order_by(order_field.asc())
-            
-            # 计算偏移量
-            offset = (page - 1) * per_page
-            
-            # 获取当前页数据
-            items = query.offset(offset).limit(per_page).all()
-            
-            return {
-                "items": items,
-                "pagination": {
-                    "page": page,
-                    "per_page": per_page,
-                    "total_count": total_count,
-                    "total_pages": total_pages,
-                    "has_prev": page > 1,
-                    "has_next": page < total_pages,
-                    "prev_page": page - 1 if page > 1 else None,
-                    "next_page": page + 1 if page < total_pages else None
-                }
-            }
+        return data
     
     @staticmethod
     def create(blog_data: Dict[str, Any]) -> WeiboBlog:

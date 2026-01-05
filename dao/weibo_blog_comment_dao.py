@@ -29,9 +29,30 @@ class WeiboBlogCommentDAO:
             # 获取评论
             comments = db.query(WeiboComment).filter(WeiboComment.bid == blog.bid).all()
             
+            # 将SQLAlchemy对象转换为字典，避免DetachedInstanceError
+            blog_dict = {
+                "id": blog.id,
+                "bid": blog.bid,
+                "user_id": blog.user_id,
+                "screen_name": blog.screen_name,
+                "text": blog.text,
+                "created_time": blog.created_time
+            }
+            
+            comments_list = []
+            for comment in comments:
+                comment_dict = {
+                    "id": comment.id,
+                    "bid": comment.bid,
+                    "screen_name": comment.screen_name,
+                    "text": comment.text,
+                    "created_at": comment.created_at
+                }
+                comments_list.append(comment_dict)
+            
             return {
-                "blog": blog,
-                "comments": comments
+                "blog": blog_dict,
+                "comments": comments_list
             }
     
     @staticmethod
@@ -60,13 +81,29 @@ class WeiboBlogCommentDAO:
             for comment in comments:
                 if comment.bid not in comments_by_blog:
                     comments_by_blog[comment.bid] = []
-                comments_by_blog[comment.bid].append(comment)
+                
+                comment_dict = {
+                    "id": comment.id,
+                    "bid": comment.bid,
+                    "screen_name": comment.screen_name,
+                    "text": comment.text,
+                    "created_at": comment.created_at
+                }
+                comments_by_blog[comment.bid].append(comment_dict)
             
             # 构建结果
             result = []
             for blog in blogs:
+                blog_dict = {
+                    "id": blog.id,
+                    "bid": blog.bid,
+                    "user_id": blog.user_id,
+                    "screen_name": blog.screen_name,
+                    "text": blog.text,
+                    "created_time": blog.created_time
+                }
                 result.append({
-                    "blog": blog,
+                    "blog": blog_dict,
                     "comments": comments_by_blog.get(blog.bid, [])
                 })
             
@@ -84,23 +121,51 @@ class WeiboBlogCommentDAO:
             包含博客和评论的字典列表
         """
         with ORM() as db:
-            # 使用JOIN查询同时获取微博和评论，减少数据库查询次数
-            items = db.query(WeiboBlog, WeiboComment).outerjoin(
-                WeiboComment, WeiboBlog.bid == WeiboComment.bid
-            ).order_by(func.random()).limit(limit).all()
+            # 第一步：随机获取指定数量的博客
+            blogs = db.query(WeiboBlog).order_by(func.random()).limit(limit).all()
             
-            # 将查询结果按照微博分组
-            result_map = {}
-            for blog, comment in items:
-                if blog.bid not in result_map:
-                    result_map[blog.bid] = {
-                        "blog": blog,
-                        "comments": []
-                    }
-                if comment:
-                    result_map[blog.bid]["comments"].append(comment)
+            if not blogs:
+                return []
             
-            return list(result_map.values())
+            # 获取这些博客的BID
+            blog_bids = [blog.bid for blog in blogs]
+            
+            # 第二步：获取这些博客的所有评论
+            comments = db.query(WeiboComment).filter(WeiboComment.bid.in_(blog_bids)).all()
+            
+            # 按博客BID分组评论
+            comments_by_blog = {}
+            for comment in comments:
+                if comment.bid not in comments_by_blog:
+                    comments_by_blog[comment.bid] = []
+                
+                comment_dict = {
+                    "id": comment.id,
+                    "bid": comment.bid,
+                    "screen_name": comment.screen_name,
+                    "text": comment.text,
+                    "created_at": comment.created_at
+                }
+                comments_by_blog[comment.bid].append(comment_dict)
+            
+            # 构建最终结果
+            result = []
+            for blog in blogs:
+                blog_dict = {
+                    "id": blog.id,
+                    "bid": blog.bid,
+                    "user_id": blog.user_id,
+                    "screen_name": blog.screen_name,
+                    "text": blog.text,
+                    "created_time": blog.created_time
+                }
+                
+                result.append({
+                    "blog": blog_dict,
+                    "comments": comments_by_blog.get(blog.bid, [])
+                })
+            
+        return result
     
     @staticmethod
     def get_comments_by_blog_id(blog_id: str) -> List[WeiboComment]:
