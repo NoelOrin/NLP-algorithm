@@ -2,14 +2,9 @@
 BERTopic基本功能测试
 这个脚本测试BERTopic系统的基本功能，不依赖外部数据文件
 """
-
+import os
 import warnings
 import logging
-import sys
-import os
-
-# 添加当前目录到Python路径
-sys.path.append(os.path.dirname(__file__))
 
 # 抑制警告
 warnings.filterwarnings("ignore")
@@ -77,7 +72,7 @@ def test_bertopic_basic():
             "最近在学习新的编程语言",
             "数据分析和可视化很重要",
             "人工智能技术正在快速发展"
-        ] * 3  # 重复创建更多数据
+        ] * 9  # 重复创建更多数据
         
         logger.info(f"创建了 {len(example_texts)} 条示例文本")
         
