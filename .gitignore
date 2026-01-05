@@ -13,3 +13,8 @@ wheels/
 /crawler/weibo_comment_crawler/评论/
 /crawler/weibo_comment_crawler/crawler_progress.json
 /bert-multiple-emotion-classify/pretrained_model/bert-base-chinese/
+/crawler/weibo-search/结果文件/事件/事件.csv
+/weibo-public-opinion-analysis/map/新增.xlsx
+/crawler/weibo-search/结果文件/新闻/新闻.csv
+/crawler/weibo-search/结果文件/社会/社会.csv
+/crawler/weibo-search/结果文件/舆论/舆论.csv
