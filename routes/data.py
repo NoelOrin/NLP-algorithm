@@ -5,8 +5,8 @@ from typing import Optional
 
 from fastapi import APIRouter
 import os
-from service.api.weibo_blog import weibo_blogs, weibo_blog
-from service.api.weibo_comment import weibo_comment, weibo_comments
+from service.api.weibo.weibo_blog import weibo_blogs, weibo_blog
+from service.api.weibo.weibo_comment import weibo_comment, weibo_comments
 
 router = APIRouter(prefix="/data", tags=["data"])
 
@@ -19,10 +19,15 @@ async def get_blogs(
     order_desc: bool = True
 ):
     try:
+        # 构建过滤条件
+        filters = {}
+        if screen_name:
+            filters["screen_name"] = screen_name
+            
         data = weibo_blogs(
             page=page,
             per_page=per_page,
-            screen_name=screen_name,
+            filters=filters,
             order_by=order_by,
             order_desc=order_desc
         )
@@ -50,8 +55,26 @@ async def get_blog(id: str):
 
 @router.get("/blog/{blog_id}/comments")
 async def get_blog_comments(blog_id: Annotated[str, Path(description="微博博客ID")]):
-    
-    return 
+    """获取指定博客的评论"""
+    try:
+        # 构建过滤条件
+        filters = {"bid": blog_id}
+        
+        data = weibo_comments(
+            page=1,
+            per_page=100,  # 获取所有评论
+            filters=filters,
+            order_by="created_time",
+            order_desc=True
+        )
+        return {
+            "data": data["items"],
+            "pagination": data["pagination"]
+        }
+    except Exception as e:
+        return {
+            "error": str(e)
+        }
 
 @router.get("/comments")
 async def get_comments(
@@ -62,10 +85,15 @@ async def get_comments(
     order_desc: bool = True
 ):
     try:
+        # 构建过滤条件
+        filters = {}
+        if blog_id:
+            filters["bid"] = blog_id
+            
         data = weibo_comments(
             page=page,
             per_page=per_page,
-            blog_id=blog_id,
+            filters=filters,
             order_by=order_by,
             order_desc=order_desc
         )

@@ -1,24 +1,20 @@
 from typing import Optional, Dict, Any
-from data_models.weibo_blog import WeiboBlog
-from data_models.weibo_comment import WeiboComment
-from orm.client import ORM
-from utils.paginator import Paginator
-from sqlalchemy.sql import func
+
+from dao.weibo_blog_dao import WeiboBlogDAO
 
 
-def weibo_blog(id: str):
+def weibo_blog(id: str) -> Dict[str, Any]:
     """根据ID获取微博博客"""
-    with ORM() as db:
-        item = db.query(WeiboBlog).filter(WeiboBlog.id == id)
-        return {
-            "data": item
-        }
+    blog = WeiboBlogDAO.get_by_id(id)
+    return {
+        "data": blog
+    }
 
 
 def weibo_blogs(
         page: int = 1,
         per_page: int = 20,
-        screen_name: Optional[str] = None,
+        filters: Optional[Dict[str, Any]] = None,
         order_by: Optional[str] = "created_time",
         order_desc: bool = True
 ) -> Dict[str, Any]:
@@ -28,19 +24,14 @@ def weibo_blogs(
     Args:
         page: 页码
         per_page: 每页数量
-        screen_name: 用户名过滤
+        filters: 过滤条件字典
         order_by: 排序字段
         order_desc: 是否降序
 
     Returns:
         分页结果
     """
-    filters = {}
-    if screen_name:
-        filters["screen_name"] = screen_name
-
-    return Paginator(
-        model_class=WeiboBlog,
+    return WeiboBlogDAO.get_paginated(
         page=page,
         per_page=per_page,
         filters=filters,
