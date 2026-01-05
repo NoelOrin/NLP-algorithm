@@ -1,0 +1,16 @@
+{
+  "total_documents": 100,
+  "total_topics": 5,
+  "noise_documents": 0,
+  "noise_ratio": 0.0,
+  "topic_sizes": {
+    "1": 30,
+    "2": 15,
+    "0": 20,
+    "4": 30,
+    "3": 5
+  },
+  "avg_topic_size": 20.0,
+  "max_topic_size": 30,
+  "min_topic_size": 5
+}

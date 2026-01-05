@@ -19,7 +19,7 @@ def demo_with_sample_data():
     logger.info("=== 使用示例数据进行演示 ===")
     with ORM() as db:
         # tmp = db.query(WeiboBlog.text).filter(WeiboBlog.text != "").limit(100).all()
-        tmp = db.query(WeiboBlog.text).order_by(func.random()).limit(1000).all()
+        tmp = db.query(WeiboBlog.text).order_by(func.random()).limit(100).all()
         example_texts = [text[0] for text in tmp]
         print(example_texts)
 

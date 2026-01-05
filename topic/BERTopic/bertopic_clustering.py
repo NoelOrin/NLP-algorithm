@@ -142,12 +142,14 @@ class BERTopicClustering:
     
     def __init__(self, 
                  embedding_model: str = "paraphrase-multilingual-MiniLM-L12-v2",
+                 local_model_path: Optional[str] = None,
                  language: str = "chinese",
                  min_topic_size: int = 10,
                  nr_topics: Optional[int] = None,
                  verbose: bool = False):
         """初始化聚类器"""
         self.embedding_model_name = embedding_model
+        self.local_model_path = local_model_path
         self.language = language
         self.min_topic_size = min_topic_size
         self.nr_topics = nr_topics
@@ -176,8 +178,13 @@ class BERTopicClustering:
             return
         
         try:
-            # 配置嵌入模型
-            embedding_model = SentenceTransformer(self.embedding_model_name)
+            # 配置嵌入模型 - 支持本地模型路径
+            if self.local_model_path and os.path.exists(self.local_model_path):
+                logger.info(f"使用本地嵌入模型: {self.local_model_path}")
+                embedding_model = SentenceTransformer(self.local_model_path)
+            else:
+                logger.info(f"使用在线嵌入模型: {self.embedding_model_name}")
+                embedding_model = SentenceTransformer(self.embedding_model_name)
             
             # 配置UMAP降维
             umap_model = UMAP(
@@ -421,6 +428,7 @@ def run_clustering_pipeline(file_path: str, text_column: str = 'text',
                            sample_size: Optional[int] = None,
                            min_topic_size: int = 10, 
                            nr_topics: Optional[int] = None,
+                           local_model_path: Optional[str] = None,
                            output_dir: str = "clustering_results"):
     """运行完整的聚类流程"""
     
@@ -428,6 +436,7 @@ def run_clustering_pipeline(file_path: str, text_column: str = 'text',
     clusterer = BERTopicClustering(
         min_topic_size=min_topic_size,
         nr_topics=nr_topics,
+        local_model_path=local_model_path,
         verbose=True
     )
     
