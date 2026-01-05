@@ -1,7 +1,7 @@
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Query
 
-from data_models.weibo_comment import WeiboComment
+from models.weibo_comment import WeiboComment
 from orm.client import ORM
 
 

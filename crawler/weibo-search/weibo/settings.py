@@ -12,7 +12,7 @@ DEFAULT_REQUEST_HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8,en-US;q=0.7',
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0',
-    'Cookie': '_T_WM=0601f8b79ee7de682115d889b070c4d3; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh8HILbCB1TnVb5veiMiHfR5NHD95Q4ehzf1h571Ke0Ws4DqcjMi--NiK.Xi-2Ri--ciKnRi-zN1K5ESKn7eh.0e7tt; SCF=ArMQAAJmyIG49ARh17nK3PgjUV15xWAqieE_jmgpqmK6seaUUtu5PZyzTZvz7OLBXCSbsW0LL57rlVwk3JXQAT4.; SUB=_2A25ESwjDDeRhGe9O6VcZ8C7FyD-IHXVnKQQLrDV6PUJbktANLW3xkW1NdKWo_X22d1plD5napTDweGDY0LIy1tsm; ALF=1769407891'
+    'Cookie': '_T_WM=0601f8b79ee7de682115d889b070c4d3; SCF=ArMQAAJmyIG49ARh17nK3PgjUV15xWAqieE_jmgpqmK6EBv6JEuOrloQt868CZ5yThTA3pxgFX7f0An6IYfJa2I.; SUB=_2A25EXwvEDeRhGe9O6VcZ8C7FyD-IHXVnFQEMrDV6PUJbktANLXXMkW1NdKWo_UJ8t0S55YmPJM9PJIsqT4g9-XGO; SUBP=0033WrSXqPxfM725Ws9jqgMF55529P9D9Wh8HILbCB1TnVb5veiMiHfR5JpX5KMhUgL.Fo.7eo-Reh54e0e2dJLoIp7LxKML1KBLBKnLxKqL1hnLBoM4ehzf1h571Ke0; SSOLoginState=1767603092; ALF=1770195092'
 }
 ITEM_PIPELINES = {
     'weibo.pipelines.DuplicatesPipeline': 300,
@@ -20,7 +20,7 @@ ITEM_PIPELINES = {
 }
 # 要搜索的关键词列表，可写多个, 值可以是由关键词或话题组成的列表，也可以是包含关键词的txt文件路径，
 # 如'keyword_list.txt'，txt文件中每个关键词占一行
-KEYWORD_LIST = ['舆论','新闻','事件','社会']  # 或者 KEYWORD_LIST = 'keyword_list.txt'
+KEYWORD_LIST = ['舆论','社会']  # 或者 KEYWORD_LIST = 'keyword_list.txt'
 # 要搜索的微博类型，0代表搜索全部微博，1代表搜索全部原创微博，2代表热门微博，3代表关注人微博，4代表认证用户微博，5代表媒体微博，6代表观点微博
 WEIBO_TYPE = 2
 # 筛选结果微博中必需包含的内容，0代表不筛选，获取全部微博，1代表搜索包含图片的微博，2代表包含视频的微博，3代表包含音乐的微博，4代表包含短链接的微博

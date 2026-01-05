@@ -1,8 +1,8 @@
 from typing import List, Dict, Any
 from sqlalchemy.sql import func
 
-from data_models.weibo_blog import WeiboBlog
-from data_models.weibo_comment import WeiboComment
+from models.weibo_blog import WeiboBlog
+from models.weibo_comment import WeiboComment
 from orm.client import ORM
 
 

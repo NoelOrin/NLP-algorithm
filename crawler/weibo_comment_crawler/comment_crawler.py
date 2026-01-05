@@ -17,8 +17,8 @@ import xlwt
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, project_root)
 
-from data_models.weibo_comment import WeiboComment
-from data_models.weibo_blog import WeiboBlog
+from models.weibo_comment import WeiboComment
+from models.weibo_blog import WeiboBlog
 from orm.client import ORM
 
 urllib3.disable_warnings()

@@ -1,5 +1,5 @@
 import logging
-from data_models.weibo_blog import WeiboBlog
+from models.weibo_blog import WeiboBlog
 from orm.client import ORM
 from sqlalchemy.sql import func
 
@@ -19,7 +19,7 @@ def demo_with_sample_data():
     logger.info("=== 使用示例数据进行演示 ===")
     with ORM() as db:
         # tmp = db.query(WeiboBlog.text).filter(WeiboBlog.text != "").limit(100).all()
-        tmp = db.query(WeiboBlog.text).order_by(func.random()).limit(300).all()
+        tmp = db.query(WeiboBlog.text).order_by(func.random()).limit(1000).all()
         example_texts = [text[0] for text in tmp]
         print(example_texts)
 

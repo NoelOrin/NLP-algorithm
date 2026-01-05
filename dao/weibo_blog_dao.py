@@ -2,7 +2,7 @@ from utils.paginator import Paginator
 from typing import Optional, List, Dict, Any
 from sqlalchemy.orm import Query
 
-from data_models.weibo_blog import WeiboBlog
+from models.weibo_blog import WeiboBlog
 from orm.client import ORM
 
 
