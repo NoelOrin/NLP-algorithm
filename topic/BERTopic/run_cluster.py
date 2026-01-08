@@ -19,7 +19,7 @@ def demo_with_sample_data():
     logger.info("=== 使用示例数据进行演示 ===")
     with ORM() as db:
         # tmp = db.query(WeiboBlog.text).filter(WeiboBlog.text != "").limit(100).all()
-        tmp = db.query(WeiboBlog.text).order_by(func.random()).limit(100).all()
+        tmp = db.query(WeiboBlog.text).order_by(func.random()).limit(50).all()
         example_texts = [text[0] for text in tmp]
         print(example_texts)
 
@@ -28,9 +28,14 @@ def demo_with_sample_data():
         min_topic_size=3,
         # nr_topics=5,  # 暂时移除这个参数，避免主题数量冲突
         verbose=True,
-        embedding_model="all-MiniLM-L6-v2"  # 使用更小的模型
+        # embedding_model="all-MiniLM-L12-v2"
+        # embedding_model="BAAI/bge-small-zh-v1.5"
+        embedding_model="moka-ai/m3e-base"
+        # embedding_model="BAAI/bge-base-zh-v1.5"
     )
 
+    # all - MiniLM - L6 - v2
+    # all - MiniLM - L12 - v2
     # 设置数据
     clusterer.docs = example_texts
     clusterer.original_docs = example_texts

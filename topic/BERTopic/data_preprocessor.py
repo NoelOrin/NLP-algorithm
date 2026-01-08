@@ -71,7 +71,7 @@ class ChineseTextPreprocessor:
         text = re.sub(r'@[\w\u4e00-\u9fa5]+', '', text)
         
         # 去除话题标签但保留内容
-        text = re.sub(r'#[^#]+#', lambda x: x.group()[1:-1], text)
+        # text = re.sub(r'#[^#]+#', lambda x: x.group()[1:-1], text)
         
         # 去除表情符号
         text = re.sub(r'\[[^\]]+\]', '', text)  # 微博表情格式 [xxx]

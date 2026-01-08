@@ -18,3 +18,4 @@ wheels/
 /crawler/weibo-search/crawls/search/
 /topic/BERTopic/demo_results/
 /data/weibo_blogs.csv
+/ai_models/embedding/

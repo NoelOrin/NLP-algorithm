@@ -188,11 +188,11 @@ class BERTopicClustering:
             
             # 配置UMAP降维
             umap_model = UMAP(
-                n_neighbors=15,
+                n_neighbors=10,
                 n_components=5,
                 min_dist=0.0,
                 metric='cosine',
-                random_state=42
+                random_state=55
             )
             
             # 配置HDBSCAN聚类
@@ -200,15 +200,16 @@ class BERTopicClustering:
                 min_cluster_size=self.min_topic_size,
                 metric='euclidean',
                 cluster_selection_method='eom',
+                cluster_selection_epsilon=0.1,
                 prediction_data=True
             )
             
             # 配置向量化器（针对中文优化）
             vectorizer_model = CountVectorizer(
                 stop_words=None,  # 中文停用词在预处理阶段处理
-                ngram_range=(1, 1),  # 先使用单字词
+                ngram_range=(1, 2),  # 先使用单字词
                 min_df=1,  # 降低最小文档频率
-                max_df=1.0  # 允许所有词汇
+                max_df=0.9  # 允许所有词汇
             )
             
             # 配置主题表示

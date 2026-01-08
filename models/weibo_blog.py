@@ -29,7 +29,38 @@ class WeiboBlog(Base):
 
     # 内容字段
     text = Column(Text)
-
+    # 文章链接
+    article_url = Column(String(100))
+    # 话题
+    topics = Column(String(200))
+    # @用户
+    at_users = Column(String(1000))
+    # 图片链接
+    pics = Column(String(3000))
+    # 视频链接
+    video_url = Column(String(1000))
+    # 位置
+    location = Column(String(100))
+    # 创建时间
+    created_at = Column(DateTime)
+    # 来源
+    source = Column(String(30))
+    # 点赞数
+    attitudes_count = Column(Integer)
+    # 评论数
+    comments_count = Column(Integer)
+    # 转发数
+    reposts_count = Column(Integer)
+    # 引用微博ID
+    retweet_id = Column(String(20))
+    # IP地址
+    ip = Column(String(100))
+    # 用户认证
+    user_authentication = Column(String(100))
+    # VIP类型
+    vip_type = Column(String(50))
+    # VIP等级
+    vip_level = Column(Integer)
     # 记录入库时间，默认 CURRENT_TIMESTAMP
     created_time = Column(
         DateTime,
